@@ -1,76 +1,77 @@
+#Importing the necessary modules/libraries
 import os
 import csv
 
-election_data = os.path.join("election_data.csv")
+#Creating an object out of the CSV file
+budget_data = os.path.join("budget_data.csv")
 
-# A list to capture the names of candidates
-candidates = []
+total_months = 0
+total_pl = 0
+value = 0
+change = 0
+dates = []
+profits = []
 
-# A list to capture the number of votes each candidate receives
-num_votes = []
-
-# A list to capture the percentage of total votes each candidate garners 
-percent_votes = []
-
-# A counter for the total number of votes 
-total_votes = 0
-
-with open(election_data, newline = "") as csvfile:
+#Opening and reading the CSV file
+with open(budget_data, newline = "") as csvfile:
     csvreader = csv.reader(csvfile, delimiter = ",")
+
+    #Reading the header row
     csv_header = next(csvreader)
 
+    #Reading the first row (so that we track the changes properly)
+    first_row = next(csvreader)
+    total_months += 1
+    total_pl += int(first_row[1])
+    value = int(first_row[1])
+    
+    #Going through each row of data after the header & first row 
     for row in csvreader:
-        # Add to our vote-counter 
-        total_votes += 1 
+        # Keeping track of the dates
+        dates.append(row[0])
+        
+        # Calculate the change, then add it to list of changes
+        change = int(row[1])-value
+        profits.append(change)
+        value = int(row[1])
+        
+        #Total number of months
+        total_months += 1
 
-        '''
-        If the candidate is not on our list, add his/her name to our list, along with 
-        a vote in his/her name.
-        If he/she is already on our list, we will simply add a vote in his/her
-        name 
-        '''
-        if row[2] not in candidates:
-            candidates.append(row[2])
-            index = candidates.index(row[2])
-            num_votes.append(1)
-        else:
-            index = candidates.index(row[2])
-            num_votes[index] += 1
+        #Total net amount of "Profit/Losses over entire period"
+        total_pl = total_pl + int(row[1])
+
+    #Greatest increase in profits
+    greatest_increase = max(profits)
+    greatest_index = profits.index(greatest_increase)
+    greatest_date = dates[greatest_index]
+
+    #Greatest decrease (lowest increase) in profits 
+    greatest_decrease = min(profits)
+    worst_index = profits.index(greatest_decrease)
+    worst_date = dates[worst_index]
+
+    #Average change in "Profit/Losses between months over entire period"
+    avg_change = sum(profits)/len(profits)
     
-    # Add to percent_votes list 
-    for votes in num_votes:
-        percentage = (votes/total_votes) * 100
-        percentage = round(percentage)
-        percentage = "%.3f%%" % percentage
-        percent_votes.append(percentage)
-    
-    # Find the winning candidate
-    winner = max(num_votes)
-    index = num_votes.index(winner)
-    winning_candidate = candidates[index]
 
-# Displaying results
-print("Election Results")
-print("--------------------------")
-print(f"Total Votes: {str(total_votes)}")
-print("--------------------------")
-for i in range(len(candidates)):
-    print(f"{candidates[i]}: {str(percent_votes[i])} ({str(num_votes[i])})")
-print("--------------------------")
-print(f"Winner: {winning_candidate}")
-print("--------------------------")
+#Displaying information
+print("Financial Analysis")
+print("---------------------")
+print(f"Total Months: {str(total_months)}")
+print(f"Total: ${str(total_pl)}")
+print(f"Average Change: ${str(round(avg_change,2))}")
+print(f"Greatest Increase in Profits: {greatest_date} (${str(greatest_increase)})")
+print(f"Greatest Decrease in Profits: {worst_date} (${str(greatest_decrease)})")
 
-# Exporting to .txt file
+#Exporing to .txt file
 output = open("output.txt", "w")
-line1 = "Election Results"
-line2 = "--------------------------"
-line3 = str(f"Total Votes: {str(total_votes)}")
-line4 = str("--------------------------")
-output.write('{}\n{}\n{}\n{}\n'.format(line1, line2, line3, line4))
-for i in range(len(candidates)):
-    line = str(f"{candidates[i]}: {str(percent_votes[i])} ({str(num_votes[i])})")
-    output.write('{}\n'.format(line))
-line5 = "--------------------------"
-line6 = str(f"Winner: {winning_candidate}")
-line7 = "--------------------------"
-output.write('{}\n{}\n{}\n'.format(line5, line6, line7))
+
+line1 = "Financial Analysis"
+line2 = "---------------------"
+line3 = str(f"Total Months: {str(total_months)}")
+line4 = str(f"Total: ${str(total_pl)}")
+line5 = str(f"Average Change: ${str(round(avg_change,2))}")
+line6 = str(f"Greatest Increase in Profits: {greatest_date} (${str(greatest_increase)})")
+line7 = str(f"Greatest Decrease in Profits: {worst_date} (${str(greatest_decrease)})")
+output.write('{}\n{}\n{}\n{}\n{}\n{}\n{}\n'.format(line1,line2,line3,line4,line5,line6,line7))
